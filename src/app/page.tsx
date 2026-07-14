@@ -30,11 +30,13 @@ import {
   DEMO_SUBJECT_COOKIE,
   parseDemoSubjectId,
 } from "@/lib/demo-subject";
+import { getUser, type PassportUser } from "@/lib/auth";
 import { loadProofState, type ProofState } from "@/lib/proof-state";
 import { cn } from "@/lib/utils";
 
 export default async function Home() {
   const cookieStore = await cookies();
+  const passportUser = await getUser();
   const subject = parseDemoSubjectId(
     cookieStore.get(DEMO_SUBJECT_COOKIE)?.value,
   );
@@ -48,14 +50,40 @@ export default async function Home() {
             BigQuery table viewer
           </h1>
         </div>
+        <PassportIdentity user={passportUser} />
       </header>
 
-      <ProofCard state={state} />
+      <ProofCard passportUser={passportUser} state={state} />
     </main>
   );
 }
 
-function ProofCard({ state }: { state: ProofState }) {
+function PassportIdentity({ user }: { user: PassportUser | null }) {
+  const displayName = user?.name ?? user?.email ?? user?.id;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-sm">
+      <ShieldCheck className="size-4 text-emerald-600 dark:text-emerald-400" />
+      <span className="font-medium">Passport identity</span>
+      <Badge variant={user ? "secondary" : "outline"}>
+        {user ? "Connected" : "Not detected"}
+      </Badge>
+      {displayName ? (
+        <span className="max-w-full truncate font-mono text-xs text-muted-foreground">
+          {displayName}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+function ProofCard({
+  passportUser,
+  state,
+}: {
+  passportUser: PassportUser | null;
+  state: ProofState;
+}) {
   if (state.kind === "configuration-missing") {
     return (
       <Card>
@@ -144,6 +172,18 @@ function ProofCard({ state }: { state: ProofState }) {
         </CardAction>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="rounded-lg border bg-muted/30 p-4">
+          <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            Connected through Passport
+          </div>
+          <div className="mt-1 font-medium">
+            {passportUser?.name ?? passportUser?.email ?? "Authenticated visitor"}
+          </div>
+          <div className="mt-1 font-mono text-xs text-muted-foreground">
+            Passport user ID: {passportUser?.id ?? "Unavailable"}
+          </div>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Metric label="BigQuery principal" value={state.proof.principal} />
           <Metric label="Connector" value={state.connectorUid} />

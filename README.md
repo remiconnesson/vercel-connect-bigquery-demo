@@ -19,6 +19,16 @@ unauthorized datasets never enter the application response.
 - Analyst identity: `analyst@remi-demo.com`
 - Admin identity: `admin@remi-demo.com`
 
+## Passport identity
+
+The Vercel project is protected by Passport. The app reads the verified
+`x-vercel-oidc-passport-token` identity on the server and displays the visitor's
+name, email, or stable `external_sub` ID. It never sends the raw Passport token
+to the browser or builds a second login system.
+
+For local development only, set `PASSPORT_DEV_USER` to show a stand-in identity.
+The fallback is disabled in production builds.
+
 ## BigQuery access model
 
 | Dataset | Objects | Analyst | Admin |
