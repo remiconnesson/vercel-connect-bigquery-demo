@@ -1,11 +1,8 @@
 import { cookies } from "next/headers";
 import {
-  Cable,
   CheckCircle2,
   CircleAlert,
-  Database,
   ExternalLink,
-  LockKeyhole,
   RefreshCw,
   ShieldCheck,
 } from "lucide-react";
@@ -46,82 +43,15 @@ export default async function Home() {
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-5 py-10 sm:px-8 sm:py-16">
       <header className="flex flex-col gap-5 border-b pb-8">
-        <div className="flex items-center gap-2">
-          <Badge variant="outline">Live IAM catalog</Badge>
-          <span className="font-mono text-xs text-muted-foreground">EU</span>
-        </div>
         <div className="max-w-3xl space-y-3">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
-            Corporate BigQuery access through Vercel Connect
+            BigQuery table viewer
           </h1>
-          <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-            Google authorizes one user, Vercel Connect holds the grant, and
-            BigQuery returns only the datasets and tables that principal can
-            discover. The identity comes from{" "}
-            <code className="font-mono text-sm text-foreground">
-              SESSION_USER()
-            </code>
-            .
-          </p>
         </div>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <FlowCard
-          icon={Cable}
-          label="1 · Credential broker"
-          title="Vercel Connect"
-          description="The app exchanges its Vercel OIDC identity for a user-scoped Google token."
-        />
-        <FlowCard
-          icon={LockKeyhole}
-          label="2 · Delegated identity"
-          title="Google OAuth"
-          description="The browser grants read-only BigQuery access. Provider tokens remain server-side."
-        />
-        <FlowCard
-          icon={Database}
-          label="3 · Data authorization"
-          title="BigQuery IAM"
-          description="Dataset ACLs decide which corporate tables appear. The application does not filter the catalog."
-        />
-      </section>
-
       <ProofCard state={state} />
-
-      <footer className="flex flex-col gap-2 border-t pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <span>No Google access or refresh token is sent to the browser.</span>
-        <span className="font-mono">
-          maximumBytesBilled=10MB · useLegacySql=false
-        </span>
-      </footer>
     </main>
-  );
-}
-
-function FlowCard(input: {
-  description: string;
-  icon: typeof Cable;
-  label: string;
-  title: string;
-}) {
-  const Icon = input.icon;
-
-  return (
-    <Card size="sm">
-      <CardHeader>
-        <div className="mb-3 flex size-8 items-center justify-center rounded-lg bg-muted">
-          <Icon className="size-4" />
-        </div>
-        <CardTitle>{input.title}</CardTitle>
-        <CardDescription className="font-mono text-[11px] uppercase tracking-wide">
-          {input.label}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="leading-6 text-muted-foreground">
-        {input.description}
-      </CardContent>
-    </Card>
   );
 }
 
@@ -179,14 +109,8 @@ function ProofCard({ state }: { state: ProofState }) {
       <Card>
         <CardHeader>
           <CardTitle>
-            {state.kind === "ready-to-authorize"
-              ? "Run the delegated-access proof"
-              : "Google authorization required"}
+            You are not authenticated
           </CardTitle>
-          <CardDescription>
-            Continue to Google, approve read-only BigQuery access, then return
-            here for the live catalog.
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <a
