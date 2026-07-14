@@ -45,7 +45,7 @@ export default async function Home() {
       <header className="flex flex-col gap-5 border-b pb-8">
         <div className="max-w-3xl space-y-3">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl">
-            BigQuery columns viewer
+            BigQuery table viewer
           </h1>
         </div>
       </header>
