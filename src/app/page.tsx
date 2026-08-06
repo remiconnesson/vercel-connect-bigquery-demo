@@ -90,7 +90,7 @@ function ProofCard({
         <CardHeader>
           <CardTitle>Connector setup required</CardTitle>
           <CardDescription>
-            The corporate datasets are ready. Create and attach the Google
+            The BigQuery datasets are ready. Create and attach the Google
             Custom OAuth connector to finish the path.
           </CardDescription>
         </CardHeader>
@@ -161,7 +161,7 @@ function ProofCard({
           <span className="text-sm font-medium">Delegated catalog loaded</span>
         </div>
         <CardTitle className="mt-2 text-xl">
-          BigQuery returned this principal&apos;s corporate catalog
+          BigQuery returned this principal&apos;s visible catalog
         </CardTitle>
         <CardDescription>
           The principal and visible objects below came from BigQuery. The app

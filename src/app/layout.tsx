@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Vercel Connect × BigQuery IAM",
   description:
-    "A live corporate catalog filtered by delegated Google identity and BigQuery IAM.",
+    "A live BigQuery catalog filtered by delegated Google identity and BigQuery IAM.",
   icons: {
     icon: "/icon.svg",
   },

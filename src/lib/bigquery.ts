@@ -49,7 +49,7 @@ export async function runCorporateCatalogProof(input: {
 
   if (tables.length === 0) {
     throw new BigQueryProofError(
-      "BigQuery returned no corporate tables for this Google principal",
+      "BigQuery returned no configured tables for this Google principal",
     );
   }
 

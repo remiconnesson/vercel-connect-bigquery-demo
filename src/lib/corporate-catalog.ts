@@ -12,6 +12,9 @@ export const CORPORATE_DATASETS = [
   { access: "restricted", domain: "Finance", id: "corp_finance" },
   { access: "restricted", domain: "People", id: "corp_people" },
   { access: "restricted", domain: "Security", id: "corp_security" },
+  { access: "governed", domain: "Shared operations", id: "poc_shared" },
+  { access: "restricted", domain: "Finance", id: "poc_finance" },
+  { access: "restricted", domain: "Security", id: "poc_security" },
 ] satisfies readonly CorporateDataset[];
 
 export type CorporateDatasetDefinition =
