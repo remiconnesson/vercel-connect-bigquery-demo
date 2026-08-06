@@ -16,7 +16,7 @@ IAM-filtered dataset and table metadata returned by BigQuery.
 
 ## Delivery Hero resources
 
-- Vercel project: `delivery-hero-poc-vtest314/delivery-hero-bigquery`
+- Vercel project: `dh-infra/delivery-hero-bigquery`
 - Vercel connector: `okta.com/delivery-hero-bigquery-okta`
 - Okta OIDC app: `Vercel Connect - Delivery Hero BigQuery`
 - Okta authorization server:
