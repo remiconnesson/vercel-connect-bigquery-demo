@@ -1,9 +1,7 @@
-import { cookies } from "next/headers";
 import {
   CheckCircle2,
   CircleAlert,
   ExternalLink,
-  RefreshCw,
   ShieldCheck,
 } from "lucide-react";
 
@@ -26,21 +24,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DEMO_SUBJECT_COOKIE,
-  parseDemoSubjectId,
-} from "@/lib/demo-subject";
 import { getUser, type PassportUser } from "@/lib/auth";
 import { loadProofState, type ProofState } from "@/lib/proof-state";
 import { cn } from "@/lib/utils";
 
 export default async function Home() {
-  const cookieStore = await cookies();
   const passportUser = await getUser();
-  const subject = parseDemoSubjectId(
-    cookieStore.get(DEMO_SUBJECT_COOKIE)?.value,
-  );
-  const state = await loadProofState(subject);
+  const state = await loadProofState(passportUser?.id ?? null);
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-5 py-10 sm:px-8 sm:py-16">
@@ -90,8 +80,8 @@ function ProofCard({
         <CardHeader>
           <CardTitle>Connector setup required</CardTitle>
           <CardDescription>
-            The BigQuery datasets are ready. Create and attach the Google
-            Custom OAuth connector to finish the path.
+            The BigQuery datasets are ready. Attach the Okta connector and
+            Google Workforce Identity provider to finish the path.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -122,7 +112,9 @@ function ProofCard({
         title={
           state.stage === "connect"
             ? "Connect token failed"
-            : "BigQuery query failed"
+            : state.stage === "google-sts"
+              ? "Google token exchange failed"
+              : "BigQuery query failed"
         }
         details={[state.message]}
       />
@@ -136,16 +128,18 @@ function ProofCard({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>
-            You are not authenticated
-          </CardTitle>
+          <CardTitle>Authorize BigQuery access</CardTitle>
+          <CardDescription>
+            Continue with Okta so Google can enforce the BigQuery permissions
+            attached to your Okta groups.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <a
             className={cn(buttonVariants({ size: "lg" }), "w-fit")}
-            href="/api/connect/google"
+            href="/api/connect/okta"
           >
-            Connect Google
+            Continue with Okta
             <ExternalLink data-icon="inline-end" />
           </a>
         </CardContent>
@@ -258,20 +252,18 @@ function ProofCard({
           <p className="font-mono text-xs text-muted-foreground">
             Token expires {state.expiresAt}
             {state.externalSubject
-              ? ` · Google subject ${state.externalSubject}`
+              ? ` · Okta subject ${state.externalSubject}`
               : ""}
             {` · identity query ${state.proof.bytesProcessed} bytes`}
             {state.proof.cacheHit ? " · cache hit" : ""}
           </p>
-          <form action="/api/demo/reset" method="post">
-            <button
-              className={buttonVariants({ variant: "outline" })}
-              type="submit"
-            >
-              Switch Google identity
-              <RefreshCw data-icon="inline-end" />
-            </button>
-          </form>
+          <a
+            className={buttonVariants({ variant: "outline" })}
+            href="/api/connect/okta"
+          >
+            Reauthorize Okta
+            <ExternalLink data-icon="inline-end" />
+          </a>
         </div>
       </CardContent>
     </Card>

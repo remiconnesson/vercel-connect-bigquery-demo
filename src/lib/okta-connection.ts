@@ -7,33 +7,33 @@ import {
   type ConnectTokenResponse,
 } from "@vercel/connect";
 
-import type { DemoSubjectId } from "@/lib/demo-subject";
 import type { RuntimeConfig } from "@/lib/runtime-config";
 
-export const GOOGLE_SCOPES = [
+export const OKTA_SCOPES = [
   "openid",
+  "profile",
   "email",
-  "https://www.googleapis.com/auth/bigquery.readonly",
+  "offline_access",
 ] as const;
 
-function tokenParams(subject: DemoSubjectId): ConnectTokenParams {
+function tokenParams(subject: string): ConnectTokenParams {
   return {
     subject: { type: "user", id: subject },
-    scopes: [...GOOGLE_SCOPES],
+    scopes: [...OKTA_SCOPES],
   };
 }
 
-export async function getGoogleToken(
+export async function getOktaToken(
   config: RuntimeConfig,
-  subject: DemoSubjectId,
+  subject: string,
 ): Promise<ConnectTokenResponse> {
   return getTokenResponse(config.connectorUid, tokenParams(subject));
 }
 
-export async function getGoogleAuthorizationUrl(input: {
+export async function getOktaAuthorizationUrl(input: {
   callbackUrl: string;
   config: RuntimeConfig;
-  subject: DemoSubjectId;
+  subject: string;
 }): Promise<string> {
   const authorization = await startAuthorization(
     input.config.connectorUid,

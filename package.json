@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "connector:create": "node scripts/create-google-connector.mjs"
+    "connector:create": "node scripts/create-okta-connector.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

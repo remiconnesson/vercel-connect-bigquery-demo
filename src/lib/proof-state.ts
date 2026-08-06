@@ -12,9 +12,12 @@ import {
   runCorporateCatalogProof,
   type CorporateCatalogProof,
 } from "@/lib/bigquery";
-import type { DemoSubjectId } from "@/lib/demo-subject";
-import { getGoogleToken } from "@/lib/google-connection";
+import { getOktaToken } from "@/lib/okta-connection";
 import { getRuntimeConfig } from "@/lib/runtime-config";
+import {
+  exchangeOktaTokenForGoogleAccessToken,
+  GoogleStsError,
+} from "@/lib/workforce-identity";
 
 export type ProofState =
   | { kind: "configuration-missing"; details: string[] }
@@ -30,12 +33,12 @@ export type ProofState =
     }
   | {
       kind: "failed";
-      stage: "connect" | "bigquery";
+      stage: "connect" | "google-sts" | "bigquery";
       message: string;
     };
 
 export async function loadProofState(
-  subject: DemoSubjectId | null,
+  subject: string | null,
 ): Promise<ProofState> {
   const config = getRuntimeConfig();
   if (config.kind === "missing") {
@@ -50,7 +53,7 @@ export async function loadProofState(
 
   let tokenResponse;
   try {
-    tokenResponse = await getGoogleToken(config.value, subject);
+    tokenResponse = await getOktaToken(config.value, subject);
   } catch (error) {
     if (
       error instanceof UserAuthorizationRequiredError ||
@@ -71,26 +74,43 @@ export async function loadProofState(
         stage: "connect",
         message: error.code
           ? `Vercel Connect returned ${error.code}.`
-          : "Vercel Connect could not issue a Google token.",
+          : "Vercel Connect could not issue an Okta token.",
       };
     }
     return {
       kind: "failed",
       stage: "connect",
-      message: "Vercel Connect could not issue a Google token.",
+      message: "Vercel Connect could not issue an Okta token.",
+    };
+  }
+
+  let googleToken;
+  try {
+    googleToken = await exchangeOktaTokenForGoogleAccessToken({
+      config: config.value,
+      oktaAccessToken: tokenResponse.token,
+    });
+  } catch (error) {
+    return {
+      kind: "failed",
+      stage: "google-sts",
+      message:
+        error instanceof GoogleStsError
+          ? error.message
+          : "Google STS rejected the Okta token.",
     };
   }
 
   try {
     const proof = await runCorporateCatalogProof({
-      accessToken: tokenResponse.token,
+      accessToken: googleToken.accessToken,
       config: config.value,
     });
 
     return {
       kind: "connected",
       connectorUid: tokenResponse.connector.uid,
-      expiresAt: new Date(tokenResponse.expiresAt).toISOString(),
+      expiresAt: googleToken.expiresAt,
       externalSubject: tokenResponse.externalSubject,
       proof,
     };

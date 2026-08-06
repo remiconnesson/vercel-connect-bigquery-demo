@@ -1,59 +1,47 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { chmod, readFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 
 const credentialPath = process.argv[2];
-const expectedProjectId = "remi-demo-bq-connect";
-const expectedRedirectUri = "https://connect.vercel.com/callback";
-const connectorName = "bigquery-google-passport-demo";
+const expectedIssuer =
+  "https://integrator-1495739.okta.com/oauth2/default";
+const connectorName = "delivery-hero-bigquery-okta";
 
 if (!credentialPath) {
-  fail("Usage: pnpm connector:create /path/to/google-client-secret.json");
+  fail("Usage: pnpm connector:create /path/to/okta-oauth-client.json");
 }
 
-let parsed;
+let credentials;
 try {
-  parsed = JSON.parse(await readFile(credentialPath, "utf8"));
+  credentials = JSON.parse(await readFile(credentialPath, "utf8"));
 } catch {
-  fail("Could not read the Google OAuth client JSON file.");
+  fail("Could not read the Okta OAuth client JSON file.");
 }
 
-const web = parsed?.web;
 if (
-  !web ||
-  typeof web.client_id !== "string" ||
-  typeof web.client_secret !== "string" ||
-  web.project_id !== expectedProjectId ||
-  !Array.isArray(web.redirect_uris) ||
-  !web.redirect_uris.includes(expectedRedirectUri)
+  credentials?.issuer !== expectedIssuer ||
+  typeof credentials?.client_id !== "string" ||
+  typeof credentials?.client_secret !== "string"
 ) {
   fail(
-    `Expected a Google OAuth Web credential for ${expectedProjectId} with redirect URI ${expectedRedirectUri}.`,
+    `Expected issuer ${expectedIssuer} plus client_id and client_secret.`,
   );
 }
 
-const scopes = [
-  "openid",
-  "email",
-  "https://www.googleapis.com/auth/bigquery.readonly",
-];
-
 const connectorData = {
-  serverUrl: "https://accounts.google.com",
-  clientId: web.client_id,
-  clientSecret: web.client_secret,
-  tokenEndpointAuthMethod: "client_secret_post",
+  serverUrl: credentials.issuer,
+  clientId: credentials.client_id,
+  clientSecret: credentials.client_secret,
+  tokenEndpointAuthMethod: "client_secret_basic",
   pkceRequired: true,
   codeChallengeMethod: "S256",
-  userAuthorization: { enabled: true, scopes },
+  userAuthorization: {
+    enabled: true,
+    scopes: ["openid", "profile", "email", "offline_access"],
+  },
   refreshTokens: { enabled: true },
   clientCredentials: { enabled: false },
-  authorizationUrlParams: {
-    access_type: "offline",
-    include_granted_scopes: "true",
-    prompt: "consent",
-  },
 };
 
 const create = run(
@@ -61,7 +49,7 @@ const create = run(
   [
     "connect",
     "create",
-    "google",
+    "okta.com",
     "--name",
     connectorName,
     "--connector-type",
@@ -96,8 +84,11 @@ run("vercel", [
 
 const environmentValues = {
   VERCEL_CONNECTOR_UID: connector.uid,
-  GCP_PROJECT_ID: expectedProjectId,
+  GCP_PROJECT_ID: "delivery-hero-eaa-poc-vtest314",
   BIGQUERY_LOCATION: "EU",
+  GOOGLE_WORKFORCE_PROVIDER_AUDIENCE:
+    "//iam.googleapis.com/locations/global/workforcePools/delivery-hero-poc-vtest314/providers/okta-connect-dh",
+  GOOGLE_WORKFORCE_USER_PROJECT: "210396445251",
 };
 
 for (const [name, value] of Object.entries(environmentValues)) {
@@ -115,15 +106,6 @@ for (const [name, value] of Object.entries(environmentValues)) {
     ]);
   }
 }
-
-run("vercel", [
-  "env",
-  "pull",
-  ".env.local",
-  "--environment=development",
-  "--yes",
-]);
-await chmod(".env.local", 0o600);
 
 console.log(
   `Connector ${connector.uid} is attached and available in every environment.`,
