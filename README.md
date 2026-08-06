@@ -52,6 +52,14 @@ grants, PKCE, and this redirect URI:
 https://connect.vercel.com/callback
 ```
 
+Assign the app to `bigquery-owner` only. On the `default` authorization server,
+add an access-token `groups` claim for groups beginning with `bigquery-`, and
+scope its authorization policy to this client. The Delivery Hero sandbox also
+uses the dedicated `Delivery Hero BigQuery password` app sign-in policy: its
+single-factor password rule applies only to `bigquery-owner`, so test users do
+not inherit the org-wide two-factor rule and get blocked on Okta Verify setup.
+Do not share that sandbox policy with production apps.
+
 Store its issuer, client ID, and client secret in a JSON file outside the
 repository:
 
